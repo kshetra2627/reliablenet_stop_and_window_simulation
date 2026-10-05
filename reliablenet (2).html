@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ReliableNet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#E8EDF1;--panel:#fff;--ink:#14232E;--mute:#5A6B78;--line:#C9D4DC;--par:#F2B84B;--pink:#3B2A00;--cell:#F4F7F9;--bad:#D6402F;--ok:#1F8A5B;--fly:#E0A73A;--hot:#E8702A;--acc:#14232E;--acci:#fff;
+--sans:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1A22;--panel:#16252F;--ink:#E6EEF3;--mute:#8CA0AE;--line:#2A3E4C;--par:#E0A73A;--pink:#241800;--cell:#1D3140;--bad:#FF6B58;--ok:#43C48B;--hot:#F08A4B;--acc:#E6EEF3;--acci:#0F1A22}}
+:root[data-theme="dark"]{--bg:#0F1A22;--panel:#16252F;--ink:#E6EEF3;--mute:#8CA0AE;--line:#2A3E4C;--par:#E0A73A;--pink:#241800;--cell:#1D3140;--bad:#FF6B58;--ok:#43C48B;--hot:#F08A4B;--acc:#E6EEF3;--acci:#0F1A22}
+*,*::before,*::after{box-sizing:inherit}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans)}
+main{max-width:900px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:2rem;margin:0;letter-spacing:-.01em}.sub{color:var(--mute);margin:2px 0 16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+label{display:block;font-weight:500;font-size:.9rem;margin-bottom:4px}
+input,select{font:inherit;font-family:var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0;max-width:100%}
+input[type=number]{width:90px}input.wide{width:240px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:12px}
+button{font:inherit;font-weight:700;background:var(--acc);color:var(--acci);border:0;border-radius:6px;padding:9px 16px;cursor:pointer}
+button:disabled{opacity:.35;cursor:not-allowed}button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+:focus-visible{outline:3px solid var(--par);outline-offset:2px}
+.speed{margin-left:auto}.hint{font-size:.85rem;color:var(--mute);margin:0 0 8px}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--fly)}
+.frames{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;padding:6px 0}
+.fr{min-width:42px;height:42px;padding:0 6px;display:grid;place-items:center;font:700 1rem var(--mono);border:2px solid var(--line);border-radius:6px;background:var(--cell)}
+.fr.s1{background:var(--fly);color:var(--pink);border-color:transparent}.fr.s2{background:var(--ok);color:#fff;border-color:transparent}.fr.s3{background:var(--bad);color:#fff;border-color:transparent}
+.fr.win{outline:3px solid var(--ink);outline-offset:2px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,1.3fr) minmax(0,1fr);gap:10px;margin:14px 0 6px}
+.node{border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--cell);min-height:120px}
+.node b{display:block}.nt{font:.8rem var(--mono);color:var(--mute);min-height:1.5em}
+.wire{position:relative;min-height:120px}.wire::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:2px dashed var(--line)}
+.chip{position:absolute;width:56px;height:30px;display:grid;place-items:center;font:700 .72rem var(--mono);border-radius:6px;color:var(--pink);background:var(--fly)}
+.chip.ack{background:var(--ok);color:#fff}.chip.hot{background:var(--hot);color:#fff}.chip.nack,.chip.dead{background:var(--bad);color:#fff}
+.note{font:700 .95rem var(--mono);min-height:1.6em;margin:4px 0 0}
+.nstrip{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px}.nstrip .cell{width:24px;text-align:center}
+.bit{height:28px;display:grid;place-items:center;font:700 .85rem var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:4px}
+.bit.p{background:var(--par);color:var(--pink);border-color:transparent}.bit.bad{background:var(--bad);color:#fff;border-color:transparent}.bit.fixed{background:var(--ok);color:#fff;border-color:transparent}
+.pos{font:.62rem var(--mono);color:var(--mute)}
+.log{height:190px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:10px;font:.85rem/1.5 var(--mono);background:var(--bg)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px}
+.st{border:1px solid var(--line);border-radius:8px;padding:8px 10px}.st div:first-child{font-size:.78rem;color:var(--mute)}.st div:last-child{font:700 1.2rem var(--mono)}
+table{border-collapse:collapse;font:.85rem var(--mono);margin-top:10px}th,td{text-align:left;padding:5px 12px 5px 0;border-bottom:1px solid var(--line)}th{font-family:var(--sans);color:var(--mute);font-weight:500}
+.wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<main>
+<h1>ReliableNet</h1>
+<p class="sub">Stop-and-Wait and Sliding Window reliable data transfer over a lossy channel.</p>
+<section class="card" aria-label="ReliableNet simulator">
+<div class="row">
+ <div><label for="rp">Protocol</label><select id="rp"><option value="sw">Stop-and-Wait</option><option value="sl">Sliding Window (Go-Back-N)</option></select></div>
+ <div><label for="rf">Frames</label><input id="rf" type="number" min="1" max="20" value="8"></div>
+ <div><label for="rl">Loss %</label><input id="rl" type="number" min="0" max="90" value="20"></div>
+ <div><label for="rw">Window</label><input id="rw" type="number" min="1" max="8" value="4"></div>
+ <button id="rgo">Start transmission</button><button id="rcmp" class="ghost">Compare protocols</button>
+ <label class="speed">Speed <select id="speed"><option value="900">Slow</option><option value="500" selected>Normal</option><option value="150">Fast</option></select></label>
+</div>
+<div class="row"><button id="rpause" class="ghost" disabled>Pause</button><button id="rstep" class="ghost" disabled>Step</button><button id="rlf" class="ghost" disabled>Lose next frame</button><button id="rla" class="ghost" disabled>Lose next ACK</button></div>
+<p class="hint">Frame colours: grey waiting, amber in flight, green acknowledged, red lost. The outlined frames are the sender window. While a run is going, pause it, step one event at a time, or force the next frame or ACK to be lost.</p>
+<div id="app"></div><div class="wrap" id="cmp"></div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id),rnd=Math.random,pw2=n=>(n&(n-1))===0;
+const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const num=(id,lo,hi)=>Math.min(hi,Math.max(lo,parseInt($(id).value)||lo));
+const calm=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function build(){$("app").innerHTML='<div class="frames" id="frames" aria-label="Frames"></div><div class="stage"><div class="node"><b>Sender</b><div class="nt" id="sn"></div><div class="nstrip" id="snd"></div></div><div class="wire" id="wire"></div><div class="node"><b>Receiver</b><div class="nt" id="rc"></div><div class="nstrip" id="rcv"></div></div></div><p class="note" id="note" role="status">Press start to begin.</p><div class="log" id="log" role="log"></div><div class="stats" id="stats"></div>'}
+function strip(el,a,cls){el.innerHTML="";for(let i=1;i<a.length;i++){const c=mk("div","cell"),b=mk("div","bit"+((pw2(i)||i===a.length-1)?" p":"")+(cls&&cls[i]?" "+cls[i]:""),a[i]);c.append(b,mk("div","pos",i));el.append(c)}}
+function fly(e,ms){const w=$("wire");w.innerHTML="";if(!e.a)return;const a=e.a,back=a.d==="a",c=mk("div","chip"+(back?" ack":"")+(a.c?" "+a.c:""),a.t);
+  c.style.top=back?"58%":"12%";w.append(c);const far="calc(100% - 56px)",mid="calc(50% - 28px)",f=back?far:"0px",t=back?"0px":far,d=calm?1:ms*.85;
+  if(a.l){c.animate([{left:f,opacity:1},{left:mid,opacity:1,offset:.7},{left:mid,opacity:0}],{duration:d,fill:"forwards"});setTimeout(()=>{c.textContent="\u2715";c.classList.add("dead")},d*.65)}
+  else c.animate([{left:f},{left:t}],{duration:d,easing:"ease-in-out",fill:"forwards"})}
+let timer;
+function play(labels,ev,stats,btn){clearTimeout(timer);btn.disabled=true;$("log").innerHTML="";$("stats").innerHTML="";let i=0;
+  (function step(){if(i>=ev.length){stats.forEach(([k,v])=>{const d=mk("div","st");d.append(mk("div","",k),mk("div","",v));$("stats").append(d)});btn.disabled=false;return}
+    const e=ev[i++],ms=+$("speed").value,F=$("frames");F.innerHTML="";
+    labels.forEach((l,k)=>F.append(mk("div","fr s"+e.st[k]+(k>=e.base&&k<e.base+e.w?" win":""),l)));
+    $("note").textContent=e.msg;if(e.sn!=null)$("sn").textContent=e.sn;if(e.rc!=null)$("rc").textContent=e.rc;
+    if(e.sa)strip($("snd"),e.sa);if(e.ra)strip($("rcv"),e.ra,e.rcls);
+    fly(e,ms);const L=$("log");L.append(mk("div",e.cls,e.msg));L.scrollTop=L.scrollHeight;timer=setTimeout(step,ms)})()}
+const FL={f:0,a:0};
+function upd(){$("rlf").textContent="Lose next frame"+(FL.f?" ("+FL.f+")":"");$("rla").textContent="Lose next ACK"+(FL.a?" ("+FL.a+")":"")}
+function* gen(proto,N,loss,W,S,man){const st=Array(N).fill(0);
+ const E=(msg,cls,base,w,o)=>Object.assign({msg,cls,st:st.slice(),base,w},o),
+ dec=k=>man&&FL[k]>0?(FL[k]--,upd(),true):rnd()<loss;
+ if(proto==="sw"){for(let i=0;i<N;i++){let tries=0,got=false;const sn="Sending frame "+(i+1)+" of "+N;
+  for(;;){S.sent++;if(tries++)S.re++;S.rtt++;st[i]=1;const fl=dec("f");
+   yield E("Frame "+(i+1)+" sent"+(tries>1?" (retransmission)":""),"",i,1,{a:{d:"f",l:fl,t:"F"+(i+1)},sn,rc:"Expecting frame "+(i+1)});
+   if(fl){S.lost++;st[i]=3;yield E("Frame "+(i+1)+" lost in channel","bad",i,1);yield E("Timeout: no ACK for frame "+(i+1),"warn",i,1);continue}
+   yield E(got?"Receiver discards duplicate frame "+(i+1)+" and re-sends ACK":"Frame "+(i+1)+" delivered","",i,1,{rc:"Got frame "+(i+1)});got=true;
+   if(dec("a")){S.lost++;yield E("ACK "+(i+1)+" sent","",i,1,{a:{d:"a",l:true,t:"ACK"+(i+1)}});yield E("ACK "+(i+1)+" lost in channel","bad",i,1);yield E("Timeout: no ACK for frame "+(i+1),"warn",i,1);continue}
+   S.acks++;st[i]=2;yield E("ACK "+(i+1)+" received","ok",i,1,{a:{d:"a",l:false,t:"ACK"+(i+1)},rc:"Expecting frame "+(i+2)});break}}}
+ else{let base=0;const once=Array(N).fill(0);
+  while(base<N){const end=Math.min(base+W,N),lf=[];let exp=base,brk=false;
+   for(let i=base;i<end;i++){const rs=once[i],l=dec("f");lf[i]=l;S.sent++;if(rs)S.re++;once[i]=1;st[i]=1;
+    yield E("Frame "+(i+1)+" sent"+(rs?" (retransmission)":""),"",base,W,{a:{d:"f",l,t:"F"+(i+1)},sn:"Window: frames "+(base+1)+" to "+end,rc:"Expecting frame "+(base+1)})}
+   S.rtt++;
+   for(let i=base;i<end;i++){if(lf[i]){S.lost++;st[i]=3;brk=true;yield E("Frame "+(i+1)+" lost in channel","bad",base,W)}
+    else if(brk){st[i]=0;yield E("Frame "+(i+1)+" discarded: out of order","warn",base,W)}else exp++}
+   if(exp>base&&dec("a")){S.lost++;yield E("ACK "+exp+" sent","",base,W,{a:{d:"a",l:true,t:"ACK"+exp}});yield E("ACK "+exp+" lost in channel","bad",base,W);
+    yield E("Timeout: go back to frame "+(base+1),"warn",base,W);for(let i=base;i<end;i++)st[i]=0;continue}
+   if(exp>base){for(let i=base;i<exp;i++)st[i]=2;S.acks++;yield E("ACK "+exp+" received: window slides","ok",exp,W,{a:{d:"a",l:false,t:"ACK"+exp},rc:"Expecting frame "+(exp+1)})}
+   else yield E("Timeout: go back to frame "+(base+1),"warn",base,W);
+   for(let i=exp;i<end;i++)st[i]=0;base=exp}}
+ yield E("Transmission complete","ok",N,1)}
+const newS=()=>({sent:0,lost:0,re:0,acks:0,rtt:0});
+function simARQ(p,N,L,W){const S=newS();return{ev:[...gen(p,N,L,W,S,false)],S}}
+
+/* live player: pause, step, manual loss */
+let it,S,LB,N,paused,running=false;
+const CT=["rpause","rstep","rlf","rla"];
+function show(e){const F=$("frames");F.innerHTML="";LB.forEach((l,k)=>F.append(mk("div","fr s"+e.st[k]+(k>=e.base&&k<e.base+e.w?" win":""),l)));
+ $("note").textContent=e.msg;if(e.sn!=null)$("sn").textContent=e.sn;if(e.rc!=null)$("rc").textContent=e.rc;
+ fly(e,+$("speed").value);const L=$("log");L.append(mk("div",e.cls,e.msg));L.scrollTop=L.scrollHeight}
+function end(){running=false;CT.forEach(c=>$(c).disabled=true);$("rpause").textContent="Pause";FL.f=FL.a=0;upd();
+ [["Frames",N],["Sent (incl. resends)",S.sent],["Lost",S.lost],["Retransmissions",S.re],["ACKs",S.acks],["Round trips",S.rtt]].forEach(([k,v])=>{const d=mk("div","st");d.append(mk("div","",k),mk("div","",v));$("stats").append(d)})}
+function step1(){const r=it.next();if(r.done){end();return false}show(r.value);return true}
+function tick(){if(paused||!running)return;if(step1())timer=setTimeout(tick,+$("speed").value)}
+build();
+$("rp").onchange=()=>{$("rw").disabled=$("rp").value==="sw"};$("rw").disabled=true;
+$("rgo").onclick=()=>{clearTimeout(timer);build();N=num("rf",1,20);const L=num("rl",0,90)/100,W=num("rw",1,8),p=$("rp").value;
+ S=newS();LB=Array.from({length:N},(_,i)=>i+1);FL.f=FL.a=0;upd();it=gen(p,N,L,p==="sw"?1:W,S,true);
+ paused=false;running=true;CT.forEach(c=>$(c).disabled=false);$("rpause").textContent="Pause";tick()};
+$("rpause").onclick=()=>{if(!running)return;paused=!paused;$("rpause").textContent=paused?"Resume":"Pause";if(paused)clearTimeout(timer);else tick()};
+$("rstep").onclick=()=>{if(!running)return;if(!paused){paused=true;clearTimeout(timer);$("rpause").textContent="Resume"}step1()};
+$("rlf").onclick=()=>{FL.f++;upd()};$("rla").onclick=()=>{FL.a++;upd()};
+$("rcmp").onclick=()=>{const N=num("rf",1,20),L=num("rl",0,90)/100,W=num("rw",1,8),R=300;
+ const avg=(p,w)=>{let a=0,b=0;for(let i=0;i<R;i++){const{S}=simARQ(p,N,L,w);a+=S.rtt;b+=S.re}return[(a/R).toFixed(1),(b/R).toFixed(1)]};
+ const s=avg("sw",1),g=avg("sl",W);$("cmp").innerHTML="<table><tr><th>Protocol (average of "+R+" runs)</th><th>Round trips</th><th>Retransmissions</th></tr><tr><td>Stop-and-Wait</td><td>"+s[0]+"</td><td>"+s[1]+"</td></tr><tr><td>Sliding Window, W="+W+"</td><td>"+g[0]+"</td><td>"+g[1]+"</td></tr></table>"};
+</script>
+</body>
+</html>
